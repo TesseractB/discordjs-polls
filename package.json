@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/TesseractB/discordjs-polls/issues"
   },
-  "homepage": "https://github.com/TesseractB/discordjs-polls#readme"
+  "homepage": "https://github.com/TesseractB/discordjs-polls#readme",
+  "publishConfig": {
+    "@tessearctb:registry": "https://npm.pkg.github.com"
+  }
 }
