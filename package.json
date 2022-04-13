@@ -24,5 +24,8 @@
   "homepage": "https://github.com/TesseractB/discordjs-polls#readme",
   "publishConfig": {
     "@tessearctb:registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "discord.js": "^13.6.0"
   }
 }
