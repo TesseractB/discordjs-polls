@@ -1,0 +1,25 @@
+{
+  "name": "discordjs-polls",
+  "version": "1.0.0",
+  "description": "A module for discord.js that integrates self-updating polls",
+  "main": "index.js",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TesseractB/discordjs-polls.git"
+  },
+  "keywords": [
+    "discordjs",
+    "discord.js",
+    "polls",
+    "discord"
+  ],
+  "author": "TesseractB",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TesseractB/discordjs-polls/issues"
+  },
+  "homepage": "https://github.com/TesseractB/discordjs-polls#readme"
+}
