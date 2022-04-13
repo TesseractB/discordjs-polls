@@ -1,4 +1,4 @@
-import Discord from "discord.js";
+import Discord from 'discord.js/src';
 
 interface PollOptions {
     client: Discord.Client;
@@ -8,7 +8,6 @@ interface PollOptions {
     color?: Discord.ColorResolvable;
     itemlist: Array<string>;
     emojilist?: Array<string>;
-    checkInterval?: number | "onChange";
     endDate: Date;
     anonymous?: boolean;
     allowMultiple?: boolean;
@@ -22,7 +21,6 @@ class Poll {
     color: Discord.ColorResolvable;
     itemlist: Array<string>;
     emojilist: Array<string>;
-    checkInterval: number | "onChange";
     endDate: Date;
     anonymous: boolean;
     allowMultiple: boolean;
@@ -38,7 +36,6 @@ class Poll {
             "0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟",
             "🇦","🇧","🇨","🇩","🇪","🇫","🇬","🇭","🇮","🇯","🇰","🇱","🇲","🇳","🇴","🇵","🇶","🇷","🇸","🇹","🇺","🇻","🇼","🇽","🇾","🇿",
         ];
-        this.checkInterval = options.checkInterval || "onChange";
         this.endDate = options.endDate;
         this.anonymous = options.anonymous || false;
         this.allowMultiple = options.allowMultiple || false;
@@ -76,7 +73,7 @@ class Poll {
                 for (let i = 0; i < this.itemlist.length; i++) {
                     await msg.react(this.emojilist[i]);
                 }
-                let filter = (reaction: Discord.MessageReaction, user: Discord.User) => {return true;}
+                let filter = (reaction: Discord.MessageReaction, user: Discord.User) => {return this.emojilist.includes(reaction.emoji.name)}
                 const collector = msg.createReactionCollector({ filter, time: this.endDate.getTime() - Date.now() })
                 collector.on("collect", async (reaction: Discord.MessageReaction, user: Discord.User) => {
                     if (!this.allowMultiple && voters.has(user.id)) {
@@ -99,12 +96,22 @@ class Poll {
                         totalVotes++;
                         var arr = "                    ".split("");
                         field.value = `\`${arr.fill("█", 0, Math.round((votes / totalVotes) / 5) * 5).join("")}\` | ${Math.round((votes / totalVotes) * 100)}% (${votes})`;
+                        for (let field of msg.embeds[0].fields) {
+                            let fieldVotes = parseInt(field.value.split(" ").join("").slice(6, 7));
+                            field.value = `\`${arr.fill("█", 0, Math.round((fieldVotes / totalVotes) / 5) * 5).join("")}\` | ${Math.round((fieldVotes / totalVotes) * 100)}% (${fieldVotes})`;
+                        }
                         await msg.edit({embeds: [msg.embeds[0]]});
                     }
                 })
                 collector.on("remove", async (reaction: Discord.MessageReaction, user: Discord.User) => {
                     if (this.anonymous) {
                         return;
+                    }
+
+                    if (!this.allowMultiple) {
+                        if (voters.has(user.id)) {
+                            voters.delete(user.id);
+                        }
                     }
 
                     let index = this.emojilist.indexOf(reaction.emoji.name);
@@ -115,15 +122,37 @@ class Poll {
                         totalVotes--;
                         var arr = "                    ".split("");
                         field.value = `\`${arr.fill("█", 0, Math.round((votes / totalVotes) / 5) * 5).join("")}\` | ${Math.round((votes / totalVotes) * 100)}% (${votes})`;
+                        for (let field of msg.embeds[0].fields) {
+                            let fieldVotes = parseInt(field.value.split(" ").join("").slice(6, 7));
+                            field.value = `\`${arr.fill("█", 0, Math.round((fieldVotes / totalVotes) / 5) * 5).join("")}\` | ${Math.round((fieldVotes / totalVotes) * 100)}% (${fieldVotes})`;
+                        }
                         await msg.edit({embeds: [msg.embeds[0]]});
                     }
+                })
+                collector.on("end", async () => {
+                    msg.reactions.removeAll();
+                    let winner = "";
+                    let embed = msg.embeds[0];
+                    let winnerVotes = 0;
+                    for (let field of embed.fields) {
+                        let votes = parseInt(field.value.split(" ").join("").slice(6, 7));
+                        if (votes > winnerVotes) {
+                            winner = field.name;
+                            winnerVotes = votes;
+                        }
+                    }
+                    embed.footer = {text: `Ended at ${this.endDate.toLocaleString()}`};
+                    embed.description = `The poll has ended. The winner is: ${winner}`;
+                    msg.edit({embeds: [embed]});
                 })
             });
             // TODO
             /*
-            * redo percentage bars so that they all update when a vote is casted (or removed)
-            * when the collector ends, update the footer, remove the reactions, and set the final results
+            * // redo percentage bars so that they all update when a vote is casted (or removed)
+            * // when the collector ends, update the footer, remove the reactions, and set the final results
             */
 
     }
 }
+
+export default Poll;
